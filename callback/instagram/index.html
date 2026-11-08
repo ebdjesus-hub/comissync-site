@@ -2,20 +2,28 @@
 <title>Connecting · ComisSync</title><link rel="stylesheet" href="../../style.css"></head>
 <body><main class="doc" style="text-align:center;padding-top:96px">
 <div class="logo" style="margin:0 auto 20px;width:48px;height:48px;font-size:1.3rem">C</div>
-<h1>Connecting your account…</h1>
+<h1 id="title">Connecting your account…</h1>
 <p class="muted" id="msg">You will be sent back to ComisSync in a moment.</p>
 <p id="fallback" hidden><a class="btn primary" id="go" href="#">Continue to ComisSync</a></p>
 </main>
 <script>
 (function () {
-  var target = 'https://promocoes-link.test/social/instagram/callback' + location.search;
-  var go = document.getElementById('go');
-  go.href = target;
-  if (location.search.indexOf('code=') !== -1 || location.search.indexOf('error=') !== -1) {
-    location.replace(target);
-    setTimeout(function () { document.getElementById('fallback').hidden = false; }, 2500);
-  } else {
-    document.getElementById('msg').textContent = 'Nothing to connect here.';
+  var params = new URLSearchParams(location.search);
+  var state = params.get('state') || '';
+  var target = null;
+  try {
+    var encoded = state.slice(state.lastIndexOf('.') + 1).replace(/-/g, '+').replace(/_/g, '/');
+    var url = new URL(atob(encoded + '==='.slice((encoded.length + 3) % 4)));
+    if (/^https?:$/.test(url.protocol) && /\/social\/instagram\/callback$/.test(url.pathname)) target = url.origin + url.pathname + location.search;
+  } catch (e) { target = null; }
+
+  if (!target) {
+    document.getElementById('title').textContent = 'Nothing to connect here.';
+    document.getElementById('msg').textContent = 'Start the connection from the ComisSync app.';
+    return;
   }
+  document.getElementById('go').href = target;
+  location.replace(target);
+  setTimeout(function () { document.getElementById('fallback').hidden = false; }, 2500);
 })();
 </script></body></html>
